@@ -28,17 +28,6 @@
       cursor: pointer;
       margin-top: 1rem;
     }
-    .arrow {
-      position: absolute;
-      top: -30px;
-      left: 180px;
-      width: 0;
-      height: 0;
-      border-left: 10px solid transparent;
-      border-right: 10px solid transparent;
-      border-bottom: 20px solid black;
-      transform: translateX(-50%);
-    }
   </style>
 </head>
 <body>
@@ -47,7 +36,6 @@
   <button id="spinButton">Spin!</button>
   <div style="position: relative;">
     <canvas id="wheelCanvas" width="400" height="400"></canvas>
-    <div class="arrow" id="arrow"></div>
   </div>
   <h2 id="result"></h2>
 
@@ -58,25 +46,31 @@
       const resultText = document.getElementById("result");
       const spinButton = document.getElementById("spinButton");
       const namesInput = document.getElementById("namesInput");
-      const arrow = document.getElementById("arrow");
 
       let names = [];
+      let weightedNames = [];
       let anglePerSlice = 0;
       let startAngle = 0;
       let spinning = false;
 
       // 🎯 Secret probability weights set only in code
       const secretWeights = {
-        "leader2.972": 95,
+        "leader2.97^2": 5,
         "xinchi": 1,
         "jester": 1,
-           };
+       
+      };
 
       function parseNames(input) {
         const rawNames = input.split(",").map(n => n.trim()).filter(n => n);
         names = [];
+        weightedNames = [];
         for (let n of rawNames) {
           if (!names.includes(n)) names.push(n); // Avoid duplicates
+          const weight = secretWeights[n] || 1;
+          for (let i = 0; i < weight; i++) {
+            weightedNames.push(n);  // Add the name to the weighted array multiple times based on its weight
+          }
         }
       }
 
@@ -114,14 +108,15 @@
       }
 
       function spinWheel() {
-        if (spinning || names.length === 0) return;
+        if (spinning || weightedNames.length === 0) return;
         spinning = true;
 
         // Randomize the stopping point using weighted names
-        const randomIndex = Math.floor(Math.random() * names.length);
-        const winnerName = names[randomIndex];
-        const winnerAngle = randomIndex * anglePerSlice + Math.random() * anglePerSlice;  // Random stop within slice
+        const randomIndex = Math.floor(Math.random() * weightedNames.length);
+        const winnerName = weightedNames[randomIndex];
+        const winnerIndex = names.indexOf(winnerName);  // Get the index of the winner name
 
+        const randomStopAngle = winnerIndex * anglePerSlice + Math.random() * anglePerSlice; // Random stop within slice
         let currentRotation = 0;
         let spinTime = 0;
         const duration = 4000;
@@ -130,18 +125,12 @@
         const spin = setInterval(() => {
           spinTime += spinInterval;
           const easeOut = 1 - Math.pow(1 - spinTime / duration, 3);
-          currentRotation = easeOut * (winnerAngle + 10 * 2 * Math.PI);
+          currentRotation = easeOut * (randomStopAngle + 10 * 2 * Math.PI);
           startAngle = currentRotation;
           drawWheel();
           if (spinTime >= duration) {
             clearInterval(spin);
             spinning = false;
-
-            // Arrow positioning logic
-            const arrowAngle = winnerAngle - Math.PI / 2;
-            const arrowPosition = 200 + 200 * Math.cos(arrowAngle);
-            arrow.style.left = `${arrowPosition}px`;  // Adjust arrow position
-
             resultText.textContent = `Winner: ${winnerName}`;
           }
         }, spinInterval);
