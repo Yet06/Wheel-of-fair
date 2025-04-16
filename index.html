@@ -28,13 +28,25 @@
       cursor: pointer;
       margin-top: 1rem;
     }
+    .arrow {
+      position: absolute;
+      top: -30px;
+      width: 0;
+      height: 0;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-bottom: 20px solid black;
+    }
   </style>
 </head>
 <body>
   <h1>Wheel of Fair</h1>
   <textarea class="input-area" id="namesInput" rows="4" placeholder="Enter names (e.g., Alice, Bob, Charlie, Dana)"></textarea>
   <button id="spinButton">Spin!</button>
-  <canvas id="wheelCanvas" width="400" height="400"></canvas>
+  <div style="position: relative;">
+    <canvas id="wheelCanvas" width="400" height="400"></canvas>
+    <div class="arrow"></div>
+  </div>
   <h2 id="result"></h2>
 
   <script>
@@ -99,9 +111,8 @@
         if (spinning || weightedNames.length === 0) return;
         spinning = true;
 
-        // Randomize the stopping point on each spin
+        // Randomize the stopping angle based on weighted names
         const randomStopAngle = Math.random() * (2 * Math.PI); // Random angle for stopping
-
         let currentRotation = 0;
         let spinTime = 0;
         const duration = 4000;
