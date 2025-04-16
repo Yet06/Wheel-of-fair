@@ -31,11 +31,13 @@
     .arrow {
       position: absolute;
       top: -30px;
+      left: 180px;  /* Centered above the wheel */
       width: 0;
       height: 0;
       border-left: 10px solid transparent;
       border-right: 10px solid transparent;
       border-bottom: 20px solid black;
+      transform: translateX(-50%);
     }
   </style>
 </head>
@@ -45,7 +47,7 @@
   <button id="spinButton">Spin!</button>
   <div style="position: relative;">
     <canvas id="wheelCanvas" width="400" height="400"></canvas>
-    <div class="arrow"></div>
+    <div class="arrow" id="arrow"></div>
   </div>
   <h2 id="result"></h2>
 
@@ -56,6 +58,7 @@
       const resultText = document.getElementById("result");
       const spinButton = document.getElementById("spinButton");
       const namesInput = document.getElementById("namesInput");
+      const arrow = document.getElementById("arrow");
 
       let names = [];
       let weightedNames = [];
@@ -78,7 +81,7 @@
           if (!names.includes(n)) names.push(n); // Avoid duplicates on display
           const weight = secretWeights[n] || 1;
           for (let i = 0; i < weight; i++) {
-            weightedNames.push(n);
+            weightedNames.push(n);  // Add the name to the weighted array multiple times based on its weight
           }
         }
       }
@@ -111,8 +114,12 @@
         if (spinning || weightedNames.length === 0) return;
         spinning = true;
 
-        // Randomize the stopping angle based on weighted names
-        const randomStopAngle = Math.random() * (2 * Math.PI); // Random angle for stopping
+        // Randomize the stopping point using weighted names
+        const randomIndex = Math.floor(Math.random() * weightedNames.length);
+        const winnerName = weightedNames[randomIndex];
+        const winnerIndex = names.indexOf(winnerName);  // Get the index of the winner name
+
+        const randomStopAngle = winnerIndex * anglePerSlice + (Math.random() * anglePerSlice); // Random stop within slice
         let currentRotation = 0;
         let spinTime = 0;
         const duration = 4000;
@@ -128,10 +135,11 @@
             clearInterval(spin);
             spinning = false;
 
-            // Find which name is pointed at (using randomStopAngle)
-            const index = Math.floor(((randomStopAngle + 2 * Math.PI) % (2 * Math.PI)) / anglePerSlice);
-            const winner = names[index];
-            resultText.textContent = `Winner: ${winner}`;
+            // Calculate the angle for the arrow and position it correctly
+            const arrowAngle = randomStopAngle - Math.PI / 2;
+            const arrowPosition = 200 + 200 * Math.cos(arrowAngle);
+            arrow.style.left = `${arrowPosition}px`;  // Adjust arrow position
+            resultText.textContent = `Winner: ${winnerName}`;
           }
         }, spinInterval);
       }
