@@ -53,10 +53,9 @@
 
       // 🎯 Secret probability weights set only in code
       const secretWeights = {
-        "leader2.97^2": 96,
+        "leader2.97^2": 95,
         "xinchi": 1,
         "jester": 1,
-        
       };
 
       function parseNames(input) {
@@ -100,9 +99,8 @@
         if (spinning || weightedNames.length === 0) return;
         spinning = true;
 
-        const chosen = weightedNames[Math.floor(Math.random() * weightedNames.length)];
-        const index = names.indexOf(chosen);
-        const stopAngle = (3 * Math.PI / 2) - (index * anglePerSlice + anglePerSlice / 2);
+        // Randomize the stopping point on each spin
+        const randomStopAngle = Math.random() * (2 * Math.PI); // Random angle for stopping
 
         let currentRotation = 0;
         let spinTime = 0;
@@ -112,13 +110,17 @@
         const spin = setInterval(() => {
           spinTime += spinInterval;
           const easeOut = 1 - Math.pow(1 - spinTime / duration, 3);
-          currentRotation = easeOut * (stopAngle + 10 * 2 * Math.PI);
+          currentRotation = easeOut * (randomStopAngle + 10 * 2 * Math.PI);
           startAngle = currentRotation;
           drawWheel();
           if (spinTime >= duration) {
             clearInterval(spin);
             spinning = false;
-            resultText.textContent = `Winner: ${chosen}`;
+
+            // Find which name is pointed at (using randomStopAngle)
+            const index = Math.floor(((randomStopAngle + 2 * Math.PI) % (2 * Math.PI)) / anglePerSlice);
+            const winner = names[index];
+            resultText.textContent = `Winner: ${winner}`;
           }
         }, spinInterval);
       }
